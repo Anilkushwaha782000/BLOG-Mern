@@ -17,7 +17,7 @@ app.get("/test", (req, res) => {
 app.post("/signup", async (req, res) => {
     const { username, password, email } = req.body;
     if (!username || !password || !email || username === "" || email === "" || password === "") {
-        return res.status(400).json({ message: "Please fill all fields" });
+        return res.status(400).json({ message: "All field are required",status:400 });
     } else {
         try {
             const hashedPassword = await bcrypt.hash(password, 10);
