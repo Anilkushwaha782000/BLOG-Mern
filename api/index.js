@@ -14,7 +14,7 @@ const User = require("./models/UserModel")
 app.get("/test", (req, res) => {
     res.json("hello from server side");
 })
-app.post("/signup", async (req, res) => {
+app.post("/api/signup", async (req, res) => {
     const { username, password, email } = req.body;
     if (!username || !password || !email || username === "" || email === "" || password === "") {
         return res.status(400).json({ message: "All field are required",status:400 });
@@ -25,7 +25,7 @@ app.post("/signup", async (req, res) => {
             await newUser.save();
             return res.json({ message: "Sign up successful" });
         } catch (error) {
-            return res.status(500).json({ message: error.message });
+            return res.status(500).json({ message: error.message,success:false });
         }
     }
 });
