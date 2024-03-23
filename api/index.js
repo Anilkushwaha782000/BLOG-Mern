@@ -40,11 +40,11 @@ app.post('/api/signin', async (req, res) => {
         try {
             const validUser = await User.findOne({ email });
             if (!validUser) {
-                return res.status(404).json({ message: "User not found", status: 404 })
+                return res.status(404).json({ message: "User not found", status: 404,success:false })
             }
             const validPassword = bcrypt.compareSync(password, validUser.password)
             if (!validPassword) {
-                return res.status(400).json({ message: "Invalid Password", status: 400 })
+                return res.status(400).json({ message: "Invalid Password", status: 400,success:false })
             }
             const token = jwt.sign({ id: validUser._id },process.env.JWT_SECRET);
             const {password:pass,...response}=validUser._doc
