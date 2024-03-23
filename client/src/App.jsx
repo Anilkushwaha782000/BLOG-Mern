@@ -7,6 +7,7 @@ import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Header from './components/Header';
 import { BrowserRouter as Router, Route, Routes, BrowserRouter } from 'react-router-dom';
+import FooterComponent from './components/Footer';
 function App() {
   return (
     <BrowserRouter>
@@ -19,6 +20,7 @@ function App() {
       <Route path="/signup" element={<SignUp />}></Route>
       <Route path="/dashboard" element={<Dashboard />}></Route>
     </Routes>
+    <FooterComponent/>
     </BrowserRouter>
   )
 }
