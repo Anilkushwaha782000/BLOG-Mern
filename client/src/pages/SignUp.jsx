@@ -45,7 +45,7 @@ function SignUp() {
             <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>Anil's</span> Blog
           </Link>
           <p className='text-sm mt-5'>
-            This is a demo project. You can sign in with your email and password or with Google.
+            This is a demo project. You can sign up with your email and password or with Google.
           </p>
         </div>
         <div className='flex-1'>
