@@ -2,10 +2,13 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import { store } from './reduxstore/store.js'
+import { store,persiststore } from './reduxstore/store.js'
 import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react'
 ReactDOM.createRoot(document.getElementById('root')).render(
+  <PersistGate persistor={persiststore}>
   <Provider store={store}>
     <App />
-  </Provider>,
+  </Provider>
+  </PersistGate>
 )
