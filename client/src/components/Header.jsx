@@ -10,8 +10,8 @@ import { toggleTheme } from '../reduxstore/theme/themeSlice';
 function Header() {
     const path = useLocation().pathname;
     const { currentUser } = useSelector(state => state.user)
+    // console.log("cuee",currentUser)
     const {theme}=useSelector(state=>state.theme);
-    // console.log("user",currentUser);
     const dispatch=useDispatch()
     const handleTheme=()=>{
         dispatch(toggleTheme())
@@ -29,11 +29,9 @@ function Header() {
             </Button>
             <div className='flex gap-2 md:order-2'>
                 <Button className='w-12 h-10 hidden sm:inline' color='gray' pill onClick={handleTheme}>
-                    {theme==='light'?(
-                        <FaMoon/>
-                    ):(
-                        <FaSun/>
-                    )}
+                  {
+                    theme==="light"?<FaMoon/>:(<FaSun/>)
+                  }
                 </Button>
                 {currentUser ? (
                     <Dropdown arrowIcon={false} inline
@@ -43,7 +41,7 @@ function Header() {
                             <span className="block text-sm">{currentUser.rest.username}</span>
                             <span className="block truncate text-sm font-medium ">{currentUser.rest.email}</span>
                         </Dropdown.Header>
-                        <Link to="/dashboard?/tab=profile">
+                        <Link to="/dashboard/tab=profile">
                         <Dropdown.Item icon={FaUser}>Profile</Dropdown.Item>
                         </Link>
                         <Dropdown.Item icon={HiViewGrid}>Settings</Dropdown.Item>

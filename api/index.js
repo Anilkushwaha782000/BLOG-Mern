@@ -47,9 +47,9 @@ app.post('/api/signin', async (req, res) => {
                 return res.status(400).json({ message: "Invalid Password", status: 400,success:false })
             }
             const token = jwt.sign({ id: validUser._id },process.env.JWT_SECRET);
-            const {password:pass,...response}=validUser._doc
+            const {password:pass,...rest}=validUser._doc
             if(token){
-                return res.status(200).cookie("access_token", token, { httpOnly: true }).json({ message: "Signin successfull", success: true, response })
+                return res.status(200).cookie("access_token", token, { httpOnly: true }).json({ message: "Signin successfull", success: true, rest })
             }
            
 

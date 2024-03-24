@@ -23,7 +23,7 @@ function SignIn() {
         body:JSON.stringify({email,password})
       })
       const data=await response.json();
-      console.log('data',data);
+      // console.log('data',data);
       if(data.success===false){
         dispatch(signInFailuer(data.message));
       }

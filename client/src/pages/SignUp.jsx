@@ -2,13 +2,17 @@ import { Alert, Button, Label, Spinner, TextInput } from 'flowbite-react'
 import React, { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import OAuth from '../components/OAuth'
+import { signInFailuer,signInStart,signInSuccess, signUpFailuer } from '../reduxstore/user/userSlice'
+import { useDispatch,useSelector } from 'react-redux'
 function SignUp() {
   const [username, setUserName] = useState('')
   const [email, setEmail] = useState('')
+  const dispatch=useDispatch();
   const [password, setPassword] = useState('')
   const[errorMessage,setErrorMessage]=useState(null)
   const[redirect,setRedirect]=useState(false);
   const[loading,setLoading]=useState(false)
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     // console.log(username + ",," + email + "<<" + password)
@@ -26,6 +30,7 @@ function SignUp() {
       const data=await response.json();
       console.log('data',data);
       if(data.success===false){
+        dispatch(signUpFailuer(data))
         return setErrorMessage(data.message)
       }
       setLoading(false)
@@ -80,7 +85,7 @@ function SignUp() {
           </div>
           {
             errorMessage && (
-              <Alert className='mt-5' color='failure'>
+              <Alert className='mt-5' color='failure' withBorderAccent>
                 {errorMessage}
               </Alert>
             )
