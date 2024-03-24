@@ -61,7 +61,32 @@ app.post('/api/signin', async (req, res) => {
     }
 
 })
-
+app.post('/api/google',async (req,res)=>{
+    const {name,email,image}=req.body;
+    // console.log("req.body",req.body);
+    try {
+        const user=await User.findOne({email})
+        if(user){
+            const token=jwt.sign({id:user._id},process.env.JWT_SECRET)
+            const {password,...rest}=user._doc
+           return res.status(200).cookie('access_token',token,{httpOnly:true}).json({message:"Logged in Successfully",status:200,rest})
+        }
+        else{
+            const generatedPassword=Math.random().toString(36).slice(-8)+Math.random().toString(36).slice(-8)
+            const hashedPassword=bcrypt.hashSync(generatedPassword,10)
+            const newUser=new User({username:name.toLowerCase().split(' ').join('')+Math.random().toString(9).slice(-4),
+                email,
+                profilePicture:image,password:hashedPassword})
+            const saveUser=await newUser.save()
+            const token=jwt.sign({id:saveUser._id},process.env.JWT_SECRET)
+            const {password,...rest}=saveUser._doc
+           return res.status(200).cookie('access_token',token,{httpOnly:true}).json({message:"Logged in Successfully",status:200,rest})
+        }
+    } catch (error) {
+        console.log("error",error);
+        return res.status(500).json({message:"Internal server error"})
+    }
+})
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
