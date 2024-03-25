@@ -41,7 +41,7 @@ function Header() {
                             <span className="block text-sm">{currentUser.rest.username}</span>
                             <span className="block truncate text-sm font-medium ">{currentUser.rest.email}</span>
                         </Dropdown.Header>
-                        <Link to="/dashboard/tab=profile">
+                        <Link to="/dashboard?tab=profile">
                         <Dropdown.Item icon={FaUser}>Profile</Dropdown.Item>
                         </Link>
                         <Dropdown.Item icon={HiViewGrid}>Settings</Dropdown.Item>
