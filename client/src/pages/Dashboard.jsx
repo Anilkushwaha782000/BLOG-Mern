@@ -18,9 +18,7 @@ function Dashboard() {
       <div className='md:w-56'>
         <DashSideBar/>
       </div>
-      <div>
         {tab==='profile'?<DashProfile />:null}
-      </div>
     </div>
   )
 }
