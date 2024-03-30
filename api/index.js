@@ -41,18 +41,18 @@ app.post('/api/signin', async (req, res) => {
         try {
             const validUser = await User.findOne({ email });
             if (!validUser) {
-                return res.status(404).json({ message: "User not found", status: 404,success:false })
+                return res.status(404).json({ message: "User not found", status: 404, success: false })
             }
             const validPassword = bcrypt.compareSync(password, validUser.password)
             if (!validPassword) {
-                return res.status(400).json({ message: "Invalid Password", status: 400,success:false })
+                return res.status(400).json({ message: "Invalid Password", status: 400, success: false })
             }
-            const token = jwt.sign({ id: validUser._id },process.env.JWT_SECRET);
-            const {password:pass,...rest}=validUser._doc
-            if(token){
+            const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+            const { password: pass, ...rest } = validUser._doc
+            if (token) {
                 return res.status(200).cookie("access_token", token, { httpOnly: true }).json({ message: "Signin successfull", success: true, rest })
             }
-           
+
 
         } catch (error) {
             console.error("Error occurred:", error);
@@ -62,34 +62,37 @@ app.post('/api/signin', async (req, res) => {
     }
 
 })
-app.post('/api/google',async (req,res)=>{
-    const {name,email,image}=req.body;
+app.post('/api/google', async (req, res) => {
+    const { name, email, image } = req.body;
     // console.log("req.body",req.body);
     try {
-        const user=await User.findOne({email})
-        if(user){
-            const token=jwt.sign({id:user._id},process.env.JWT_SECRET)
-            const {password,...rest}=user._doc
-           return res.status(200).cookie('access_token',token,{httpOnly:true}).json({message:"Logged in Successfully",status:200,rest})
+        const user = await User.findOne({ email })
+        if (user) {
+            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
+            const { password, ...rest } = user._doc
+            return res.status(200).cookie('access_token', token, { httpOnly: true }).json({ message: "Logged in Successfully", status: 200, rest })
         }
-        else{
-            const generatedPassword=Math.random().toString(36).slice(-8)+Math.random().toString(36).slice(-8)
-            const hashedPassword=bcrypt.hashSync(generatedPassword,10)
-            const newUser=new User({username:name.toLowerCase().split(' ').join('')+Math.random().toString(9).slice(-4),
+        else {
+            const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+            const hashedPassword = bcrypt.hashSync(generatedPassword, 10)
+            const newUser = new User({
+                username: name.toLowerCase().split(' ').join('') + Math.random().toString(9).slice(-4),
                 email,
-                profilePicture:image,password:hashedPassword})
-            const saveUser=await newUser.save()
-            const token=jwt.sign({id:saveUser._id},process.env.JWT_SECRET)
-            const {password,...rest}=saveUser._doc
-           return res.status(200).cookie('access_token',token,{httpOnly:true}).json({message:"Logged in Successfully",status:200,rest})
+                profilePicture: image, password: hashedPassword
+            })
+            const saveUser = await newUser.save()
+            const token = jwt.sign({ id: saveUser._id }, process.env.JWT_SECRET)
+            const { password, ...rest } = saveUser._doc
+            return res.status(200).cookie('access_token', token, { httpOnly: true }).json({ message: "Logged in Successfully", status: 200, rest })
         }
     } catch (error) {
-        console.log("error",error);
-        return res.status(500).json({message:"Internal server error"})
+        console.log("error", error);
+        return res.status(500).json({ message: "Internal server error" })
     }
 })
 app.post('/api/update/:userId', async (req, res) => {
     const token = req.cookies.access_token;
+    console.log("token", token)
     if (!token) {
         return res.status(401).json('Unauthorized!');
     } else {
@@ -119,22 +122,22 @@ app.post('/api/update/:userId', async (req, res) => {
                         return res.status(400).json({ message: 'Username must be in lowercase.', success: false });
                     }
                     if (!req.body.username.match(/^[a-zA-Z0-9]+$/)) {
-                        return res.status(400).json({ error: "Username must contain only letters and numbers.", success: false });
+                        return res.status(400).json({ message: "Username must contain only letters and numbers.", success: false });
                     }
-                    try {
-                        const updatedUser = await User.findByIdAndUpdate(req.params.userId, {
-                            $set: {
-                                username: req.body.username,
-                                email: req.body.email,
-                                password: req.body.password,
-                                profilePicture: req.body.profilePicture
-                            }
-                        },{new:true});
-                        const {password,...rest}=updatedUser._doc
-                        return res.status(200).json({ message: 'User updated successfully', success: true,rest });
-                    } catch (error) {
-                        return res.status(500).json("Internal server error");
-                    }
+                }
+                try {
+                    const updatedUser = await User.findByIdAndUpdate(req.params.userId, {
+                        $set: {
+                            username: req.body.username,
+                            email: req.body.email,
+                            password: req.body.password,
+                            profilePicture: req.body.profilePicture
+                        }
+                    }, { new: true });
+                    const { password, ...rest } = updatedUser._doc
+                    return res.status(200).json({ message: 'User updated successfully', success: true, rest });
+                } catch (error) {
+                    return res.status(500).json({message:"Internal server error",success:false});
                 }
             });
         } catch (error) {
