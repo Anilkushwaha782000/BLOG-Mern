@@ -4,7 +4,8 @@ const mongoose = require("mongoose")
 const dotenv = require('dotenv')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
-
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.use(express.json())
 dotenv.config()
 mongoose.connect(process.env.MONGO_URI).then(() => {
@@ -87,6 +88,61 @@ app.post('/api/google',async (req,res)=>{
         return res.status(500).json({message:"Internal server error"})
     }
 })
+app.post('/api/update/:userId', async (req, res) => {
+    const token = req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    } else {
+        try {
+            jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
+                if (error) {
+                    return res.status(500).json("Internal server error!");
+                }
+                req.user = user;
+                if (req.user.id != req.params.userId) {
+                    return res.status(403).json({ message: 'User is not allowed to update the user data', success: false });
+                }
+                if (req.body.password) {
+                    if (req.body.password.length < 6) {
+                        return res.status(400).json({ message: 'Password does not meet length requirements. It must be at least 8 characters long.', success: false });
+                    }
+                    req.body.password = bcrypt.hashSync(req.body.password, 10);
+                }
+                if (req.body.username) {
+                    if (req.body.username.length < 3 || req.body.username.length > 20) {
+                        return res.status(400).json({ message: 'Username must be between 3 to 20 characters.', success: false });
+                    }
+                    if (req.body.username.includes(' ')) {
+                        return res.status(400).json({ message: 'Username cannot contain any space.', success: false });
+                    }
+                    if (req.body.username !== req.body.username.toLowerCase()) {
+                        return res.status(400).json({ message: 'Username must be in lowercase.', success: false });
+                    }
+                    if (!req.body.username.match(/^[a-zA-Z0-9]+$/)) {
+                        return res.status(400).json({ error: "Username must contain only letters and numbers.", success: false });
+                    }
+                    try {
+                        const updatedUser = await User.findByIdAndUpdate(req.params.userId, {
+                            $set: {
+                                username: req.body.username,
+                                email: req.body.email,
+                                password: req.body.password,
+                                profilePicture: req.body.profilePicture
+                            }
+                        },{new:true});
+                        const {password,...rest}=updatedUser._doc
+                        return res.status(200).json({ message: 'User updated successfully', success: true,rest });
+                    } catch (error) {
+                        return res.status(500).json("Internal server error");
+                    }
+                }
+            });
+        } catch (error) {
+            return res.status(500).json("Internal server error!");
+        }
+    }
+});
+
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
