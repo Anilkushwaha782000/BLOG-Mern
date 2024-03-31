@@ -88,7 +88,7 @@ function DashProfile() {
     e.preventDefault();
     setUpdateUserError(null)
     setUpdateUserSuccess(null)
-    if (username === initialUsername && email === initialEmail && !password && !imageFileUrl) {
+    if (username === initialUsername && email === initialEmail && !password && imageFileUrl===currentUser.rest.profilePicture) {
       return setErrorMessage("No changes made!");
     }
   try {
@@ -116,7 +116,7 @@ function DashProfile() {
     setUpdateUserError(error.message)
   }
   };
-
+console.log("omageurl",imageFileUrl)
   return (
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>

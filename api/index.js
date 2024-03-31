@@ -92,7 +92,7 @@ app.post('/api/google', async (req, res) => {
 })
 app.post('/api/update/:userId', async (req, res) => {
     const token = req.cookies.access_token;
-    console.log("token", token)
+    // console.log("token", token)
     if (!token) {
         return res.status(401).json('Unauthorized!');
     } else {
@@ -141,10 +141,39 @@ app.post('/api/update/:userId', async (req, res) => {
                 }
             });
         } catch (error) {
-            return res.status(500).json("Internal server error!");
+            return res.status(500).json({message:"Internal server error!",success:false});
         }
     }
 });
+app.post('/api/delete/:userId',(req,res)=>{
+    const token = req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    }
+    else{
+        try {
+            jwt.verify(token,process.env.JWT_SECRET,async (err,user)=>{
+                if(err){
+                    return res.status(500).json({message:"Internal server error!",success:false});  
+                }
+                req.user = user;
+                console.log("req.user",req.user.id)
+                console.log("req.param",req.params.userId)
+                if (req.user.id != req.params.userId) {
+                    return res.status(403).json({ message: 'User is not allowed to delete  the account', success: false });
+                }
+                try {
+                    await User.findByIdAndDelete(req.params.userId);
+                    res.status(200).json({message:'User has been deleted successfully', success:true})
+                } catch (error) {
+                    return res.status(500).json({message:error.message,success:false});  
+                }
+            })
+        } catch (error) {
+            return res.status(500).json({message:error.message,success:false}); 
+        }
+    }
+})
 
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
