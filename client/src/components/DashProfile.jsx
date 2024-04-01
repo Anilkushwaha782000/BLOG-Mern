@@ -1,19 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector,useDispatch } from 'react-redux';
-import { Label, TextInput, Button, Alert } from "flowbite-react";
+import { Label, TextInput, Button, Alert, Modal } from "flowbite-react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
-import { updateStart,updateFailure,updateSuccess } from '../reduxstore/user/userSlice';
+import { useNavigate } from 'react-router-dom';
+import { updateStart,updateFailure,updateSuccess,deleteUserFailure,deleteUserStart,deleteUserSuccess } from '../reduxstore/user/userSlice';
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 function DashProfile() {
-  const { currentUser } = useSelector(state => state.user);
-  const initialUsername = currentUser.rest.username;
-  const initialEmail = currentUser.rest.email;
+  const { currentUser,error } = useSelector(state => state.user);
+  const initialUsername = currentUser.rest?.username;
+  const initialEmail = currentUser.rest?.email;
   const [username, setUserName] = useState(initialUsername);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [imageFile, setImage] = useState(null);
   const[errorMessage,setErrorMessage]=useState(null)
-  const [imageFileUrl, setImageUrl] = useState(currentUser.rest.profilePicture);
+  const [imageFileUrl, setImageUrl] = useState(currentUser.rest?.profilePicture);
   const [imageFileUploadingProgress, setImageFileUploadingProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
   const [imageFileUploadSuccess, setImageFileUploadSuccess] = useState(null);
@@ -21,8 +23,10 @@ function DashProfile() {
   const [updateUserSuccess,setUpdateUserSuccess]=useState(null)
   const [updateUserError,setUpdateUserError]=useState(null)
   const [formData,setFormData]=useState({})
+  const [showModal,setShowModal]=useState(false)
   const filePickerRef = useRef();
   const dispatch=useDispatch()
+  const navigate = useNavigate();
   useEffect(() => {
     if (imageFile) {
       uploadImage();
@@ -92,6 +96,7 @@ function DashProfile() {
       return setErrorMessage("No changes made!");
     }
   try {
+    dispatch(updateStart())
     const response=await fetch('/api/update/'+currentUser.rest._id,{
       method:'POST',
           headers:{
@@ -99,9 +104,8 @@ function DashProfile() {
           },
           body:JSON.stringify({username,email,password,profilePicture:imageFileUrl})
      })
-    //  console.log(response);
     const data=await response.json()
-    console.log(data.message)
+    // console.log(data.message)
     if(!response.ok){
       dispatch(updateFailure(data.message))
       setUpdateUserError(data.message)
@@ -110,13 +114,39 @@ function DashProfile() {
       dispatch(updateSuccess(data))
       setErrorMessage(null);
       setUpdateUserSuccess('User profile updated successfully');
+      setTimeout(() => {
+        setUpdateUserSuccess(null);
+      }, 2000);
     }
   } catch (error) {
     dispatch(updateFailure(error.message))
     setUpdateUserError(error.message)
   }
   };
-console.log("omageurl",imageFileUrl)
+  async function handleDeletAccount(){
+    setShowModal(false)
+    try {
+      dispatch(deleteUserStart())
+      const response =await fetch('/api/delete/'+currentUser.rest._id,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        // body: JSON.stringify({token: currentUser.rest.token})
+        
+      })
+      const data=await response.json()
+      if (!response.ok) {
+        dispatch(deleteUserFailure(data.message))
+      }
+      else{
+        dispatch(deleteUserSuccess(data))
+        navigate('/signup');
+      }
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message))
+    }
+  }
   return (
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>
@@ -125,7 +155,7 @@ console.log("omageurl",imageFileUrl)
       <form className='flex flex-col gap-4' onSubmit={handleUpdateProfile}>
         <input type="file" accept='image/*' onChange={handleImageChange} ref={filePickerRef} className='hidden' />
         <div className='w-32 h-32 self-center cursor-pointer rounded-full shadow-md overflow-hidden' onClick={() => filePickerRef.current.click()}>
-          <img src={imageFileUrl || currentUser.rest.profilePicture} alt='Profile Picture' className='rounded-full w-full h-full object-cover border-8 border-[lightgray]' />
+          <img src={imageFileUrl || currentUser.rest?.profilePicture} alt='Profile Picture' className='rounded-full w-full h-full object-cover border-8 border-[lightgray]' />
         </div>
         {uploadInProgress && (
           <Alert color="warning">
@@ -156,8 +186,8 @@ console.log("omageurl",imageFileUrl)
             )
           }
       <div className='text-red-500 justify-between flex mt-5'>
-        <span className='cursor-pointer'>Delete Account</span>
-        <span className='cursor-pointer'>Sign Out</span>
+        <span onClick={()=>setShowModal(true)} className='cursor-pointer'>Delete Account</span>
+        <span  className='cursor-pointer'>Sign Out</span>
       </div>
       {updateUserSuccess &&(
         <Alert color='success' className='mt-5'>{updateUserSuccess}</Alert>
@@ -165,6 +195,28 @@ console.log("omageurl",imageFileUrl)
        {updateUserError &&(
         <Alert color='failure' className='mt-5'>{updateUserError}</Alert>
       )}
+       {error &&(
+        <Alert color='failure' className='mt-5'>{error}</Alert>
+      )}
+      <Modal show={showModal} onClose={()=>setShowModal(false)} popup size='md'>
+      <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete this account?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDeletAccount}>
+                {"Yes, I'm sure"}
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }

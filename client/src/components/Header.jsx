@@ -10,7 +10,6 @@ import { toggleTheme } from '../reduxstore/theme/themeSlice';
 function Header() {
     const path = useLocation().pathname;
     const { currentUser } = useSelector(state => state.user)
-    // console.log("cuee",currentUser)
     const {theme}=useSelector(state=>state.theme);
     const dispatch=useDispatch()
     const handleTheme=()=>{
@@ -33,13 +32,13 @@ function Header() {
                     theme==="light"?<FaMoon/>:(<FaSun/>)
                   }
                 </Button>
-                {currentUser ? (
+                {currentUser.rest?.username ? (
                     <Dropdown arrowIcon={false} inline
-                    label={currentUser ? <Avatar alt='user' img={currentUser.rest.profilePicture} rounded /> : null}
+                    label={currentUser ? <Avatar alt='user'  img={currentUser.rest?.profilePicture || 'sign in'}  rounded /> : null}
                     >
                         <Dropdown.Header>
-                            <span className="block text-sm">{currentUser.rest.username}</span>
-                            <span className="block truncate text-sm font-medium ">{currentUser.rest.email}</span>
+                            <span className="block text-sm">{currentUser.rest?.username}</span>
+                            <span className="block truncate text-sm font-medium ">{currentUser.rest?.email}</span>
                         </Dropdown.Header>
                         <Link to="/dashboard?tab=profile">
                         <Dropdown.Item icon={FaUser}>Profile</Dropdown.Item>
