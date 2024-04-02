@@ -4,18 +4,18 @@ import { Label, TextInput, Button, Alert, Modal } from "flowbite-react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
 import { useNavigate } from 'react-router-dom';
-import { updateStart,updateFailure,updateSuccess,deleteUserFailure,deleteUserStart,deleteUserSuccess } from '../reduxstore/user/userSlice';
+import { updateStart,updateFailure,updateSuccess,deleteUserFailure,deleteUserStart,deleteUserSuccess,signOutSuccess } from '../reduxstore/user/userSlice';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 function DashProfile() {
   const { currentUser,error } = useSelector(state => state.user);
-  const initialUsername = currentUser.rest?.username;
-  const initialEmail = currentUser.rest?.email;
+  const initialUsername = currentUser?.rest?.username;
+  const initialEmail = currentUser?.rest?.email;
   const [username, setUserName] = useState(initialUsername);
   const [email, setEmail] = useState(initialEmail);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(null);
   const [imageFile, setImage] = useState(null);
   const[errorMessage,setErrorMessage]=useState(null)
-  const [imageFileUrl, setImageUrl] = useState(currentUser.rest?.profilePicture);
+  const [imageFileUrl, setImageUrl] = useState(currentUser?.rest?.profilePicture);
   const [imageFileUploadingProgress, setImageFileUploadingProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
   const [imageFileUploadSuccess, setImageFileUploadSuccess] = useState(null);
@@ -24,6 +24,7 @@ function DashProfile() {
   const [updateUserError,setUpdateUserError]=useState(null)
   const [formData,setFormData]=useState({})
   const [showModal,setShowModal]=useState(false)
+  const [signOut,setSignOut]=useState(false)
   const filePickerRef = useRef();
   const dispatch=useDispatch()
   const navigate = useNavigate();
@@ -147,6 +148,25 @@ function DashProfile() {
       dispatch(deleteUserFailure(error.message))
     }
   }
+  async function handleSignOut(){
+  try {
+    const  response= await fetch('/api/signout',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      }
+    })
+    const data=await  response.json();
+    if(!response.ok){
+      setSignOut(data.message)
+    }
+    else{
+      dispatch(signOutSuccess())
+    }
+  } catch (error) {
+    setSignOut(error.message)
+  }
+  }
   return (
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>
@@ -173,7 +193,7 @@ function DashProfile() {
         )}
         <TextInput placeholder='' type='text' value={username || ''} onChange={e => setUserName(e.target.value)} id='username' />
         <TextInput placeholder='' type='email' value={email || ''} onChange={e => setEmail(e.target.value)} id='email' />
-        <TextInput placeholder='Password' type='password' value={password} onChange={e => setPassword(e.target.value)} id='password' />
+        <TextInput placeholder='Password' type='password' value={password || ''} onChange={e => setPassword(e.target.value)} id='password' />
         <Button outline gradientDuoTone="purpleToBlue" onClick={handleUpdateProfile}>
           Update
         </Button>
@@ -187,7 +207,7 @@ function DashProfile() {
           }
       <div className='text-red-500 justify-between flex mt-5'>
         <span onClick={()=>setShowModal(true)} className='cursor-pointer'>Delete Account</span>
-        <span  className='cursor-pointer'>Sign Out</span>
+        <span onClick={handleSignOut} className='cursor-pointer'>Sign Out</span>
       </div>
       {updateUserSuccess &&(
         <Alert color='success' className='mt-5'>{updateUserSuccess}</Alert>
@@ -197,6 +217,9 @@ function DashProfile() {
       )}
        {error &&(
         <Alert color='failure' className='mt-5'>{error}</Alert>
+      )}
+       {signOut &&(
+        <Alert color='success' className='mt-5'>User has been signout successfully</Alert>
       )}
       <Modal show={showModal} onClose={()=>setShowModal(false)} popup size='md'>
       <Modal.Header />

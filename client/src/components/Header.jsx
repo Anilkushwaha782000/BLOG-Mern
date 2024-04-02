@@ -1,20 +1,43 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useLocation,useNavigate } from 'react-router-dom'
 import { Avatar, Button, Dropdown, Navbar, TextInput } from 'flowbite-react'
 import { AiOutlineSearch } from 'react-icons/ai';
 import { FaMoon,FaSun } from 'react-icons/fa';
 import { useSelector,useDispatch } from 'react-redux';
 import { HiCog, HiCurrencyDollar, HiLogout, HiViewGrid } from "react-icons/hi";
 import { FaUser } from 'react-icons/fa';
+import { signOutSuccess } from '../reduxstore/user/userSlice';
 import { toggleTheme } from '../reduxstore/theme/themeSlice';
 function Header() {
     const path = useLocation().pathname;
     const { currentUser } = useSelector(state => state.user)
     const {theme}=useSelector(state=>state.theme);
+    const[signOut,setSignOut]=useState(false)
+    const navigate=useNavigate()
     const dispatch=useDispatch()
     const handleTheme=()=>{
         dispatch(toggleTheme())
     }
+    async function handleSignOut(){
+        try {
+          const  response= await fetch('/api/signout',{
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json'
+            }
+          })
+          const data=await  response.json();
+          if(!response.ok){
+            setSignOut(data.message)
+          }
+          else{
+            dispatch(signOutSuccess())
+            navigate('/signin')
+          }
+        } catch (error) {
+          setSignOut(error.message)
+        }
+        }
     return (
         <Navbar className='border-b-2'>
             <Link to={"/"} className='self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white'>
@@ -32,13 +55,13 @@ function Header() {
                     theme==="light"?<FaMoon/>:(<FaSun/>)
                   }
                 </Button>
-                {currentUser.rest?.username ? (
+                {currentUser?.rest?.username ? (
                     <Dropdown arrowIcon={false} inline
-                    label={currentUser ? <Avatar alt='user'  img={currentUser.rest?.profilePicture || 'sign in'}  rounded /> : null}
+                    label={currentUser ? <Avatar alt='user'  img={currentUser?.rest?.profilePicture || 'sign in'}  rounded /> : null}
                     >
                         <Dropdown.Header>
-                            <span className="block text-sm">{currentUser.rest?.username}</span>
-                            <span className="block truncate text-sm font-medium ">{currentUser.rest?.email}</span>
+                            <span className="block text-sm">{currentUser?.rest?.username}</span>
+                            <span className="block truncate text-sm font-medium ">{currentUser?.rest?.email}</span>
                         </Dropdown.Header>
                         <Link to="/dashboard?tab=profile">
                         <Dropdown.Item icon={FaUser}>Profile</Dropdown.Item>
@@ -46,7 +69,7 @@ function Header() {
                         <Dropdown.Item icon={HiViewGrid}>Settings</Dropdown.Item>
                         <Dropdown.Item icon={HiCurrencyDollar}>Earnings</Dropdown.Item>
                         <Dropdown.Divider />
-                        <Dropdown.Item icon={HiLogout}>Sign out</Dropdown.Item>
+                        <Dropdown.Item  className='cursor-pointer' onClick={handleSignOut} icon={HiLogout}>Sign out</Dropdown.Item>
                     </Dropdown>
                 ) : (
                     <Link to="/signin">

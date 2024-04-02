@@ -28,7 +28,7 @@ function OAuth() {
         })
       })
       const data=await  response.json();
-      console.log("dtata",data);
+      // console.log("dtata signout by profile",data);
       if(response.ok){
         dispatch(signInSuccess(data))
         navigate('/')

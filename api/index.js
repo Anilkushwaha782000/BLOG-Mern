@@ -48,7 +48,7 @@ app.post('/api/signin', async (req, res) => {
                 return res.status(400).json({ message: "Invalid Password", status: 400, success: false })
             }
             const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
-            const { password: pass, ...rest } = validUser._doc
+            const { password:userPassword, ...rest } = validUser._doc
             if (token) {
                 return res.status(200).cookie("access_token", token, { httpOnly: true }).json({ message: "Signin successfull", success: true, rest })
             }
@@ -99,7 +99,7 @@ app.post('/api/update/:userId', async (req, res) => {
         try {
             jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
                 if (error) {
-                    return res.status(500).json("Internal server error!");
+                    return res.status(500).json({message:error.message,success:false});
                 }
                 req.user = user;
                 if (req.user.id != req.params.userId) {
@@ -137,11 +137,11 @@ app.post('/api/update/:userId', async (req, res) => {
                     const { password, ...rest } = updatedUser._doc
                     return res.status(200).json({ message: 'User updated successfully', success: true, rest });
                 } catch (error) {
-                    return res.status(500).json({message:"Internal server error",success:false});
+                    return res.status(500).json({message:error.message,success:false});
                 }
             });
         } catch (error) {
-            return res.status(500).json({message:"Internal server error!",success:false});
+            return res.status(500).json({message:error.message,success:false});
         }
     }
 });
@@ -157,8 +157,8 @@ app.post('/api/delete/:userId',(req,res)=>{
                     return res.status(500).json({message:"Internal server error!",success:false});  
                 }
                 req.user = user;
-                console.log("req.user",req.user.id)
-                console.log("req.param",req.params.userId)
+                // console.log("req.user",req.user.id)
+                // console.log("req.param",req.params.userId)
                 if (req.user.id != req.params.userId) {
                     return res.status(403).json({ message: 'User is not allowed to delete  the account', success: false });
                 }
@@ -173,6 +173,13 @@ app.post('/api/delete/:userId',(req,res)=>{
             return res.status(500).json({message:error.message,success:false}); 
         }
     }
+})
+app.post('/api/signout',async (req,res)=>{
+  try {
+    res.clearCookie('access_token').status(200).json({message:'User has been signout successfully',success:true})
+  } catch (error) {
+    return  res.status(500).json({message:error.message,success:false});
+  }
 })
 
 app.listen(3001, () => {
