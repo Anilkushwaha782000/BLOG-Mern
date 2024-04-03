@@ -14,6 +14,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
     console.log("could not connect to the  mongodb");
 })
 const User = require("./models/UserModel")
+const Post=require('./models/PostModal')
 app.get("/test", (req, res) => {
     res.json("hello from server side");
 })
@@ -180,6 +181,40 @@ app.post('/api/signout',async (req,res)=>{
   } catch (error) {
     return  res.status(500).json({message:error.message,success:false});
   }
+})
+app.post('/api/createpost',(req,res)=>{
+    const token=req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    }
+    else{
+        try {
+            jwt.verify(token,process.env.JWT_SECRET,async (error,user)=>{
+                if(error){
+                    return res.status(500).json({message:error.message,success:false});  
+                }
+                req.user=user
+                if(!req.user.isAdmin){
+                    return  res.status(403).json({message:'You are not authorised to create a post!',success:false,statusCode:403});
+                }
+                if(!req.body.title || !req.body.content){
+                    return  res.status(403).json({message:'Please provide all the details for publishing the post!'});
+                }
+                const slug=req.body.title.split(' ').join('-').toLowerCase().replace(/[^a-zA-Z0-9-]/g,'');
+                const newPost=new Post({
+                    ...req.body,slug,userId:req.user.id
+                })
+                try {
+                    const savedPost=await newPost.save();
+                    return res.status(201).json({message:'Blog has been saved successfully',success:true,savedPost})
+                } catch (error) {
+                    return  res.status(500).json({message:error.message,success:false});  
+                }
+            })
+        } catch (error) {
+            return  res.status(500).json({message:error.message,success:false});
+        }
+    }
 })
 
 app.listen(3001, () => {
