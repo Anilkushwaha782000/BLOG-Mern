@@ -1,32 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSelector,useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Label, TextInput, Button, Alert, Modal } from "flowbite-react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
-import { useNavigate } from 'react-router-dom';
-import { updateStart,updateFailure,updateSuccess,deleteUserFailure,deleteUserStart,deleteUserSuccess,signOutSuccess } from '../reduxstore/user/userSlice';
+import { useNavigate,Link } from 'react-router-dom';
+import { updateStart, updateFailure, updateSuccess, deleteUserFailure, deleteUserStart, deleteUserSuccess, signOutSuccess } from '../reduxstore/user/userSlice';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 function DashProfile() {
-  const { currentUser,error } = useSelector(state => state.user);
+  const { currentUser, error,loading} = useSelector(state => state.user);
   const initialUsername = currentUser?.rest?.username;
   const initialEmail = currentUser?.rest?.email;
   const [username, setUserName] = useState(initialUsername);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState(null);
   const [imageFile, setImage] = useState(null);
-  const[errorMessage,setErrorMessage]=useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
   const [imageFileUrl, setImageUrl] = useState(currentUser?.rest?.profilePicture);
   const [imageFileUploadingProgress, setImageFileUploadingProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
   const [imageFileUploadSuccess, setImageFileUploadSuccess] = useState(null);
   const [uploadInProgress, setUploadInProgress] = useState(false);
-  const [updateUserSuccess,setUpdateUserSuccess]=useState(null)
-  const [updateUserError,setUpdateUserError]=useState(null)
-  const [formData,setFormData]=useState({})
-  const [showModal,setShowModal]=useState(false)
-  const [signOut,setSignOut]=useState(false)
+  const [updateUserSuccess, setUpdateUserSuccess] = useState(null)
+  const [updateUserError, setUpdateUserError] = useState(null)
+  const [formData, setFormData] = useState({})
+  const [showModal, setShowModal] = useState(false)
+  const [signOut, setSignOut] = useState(false)
   const filePickerRef = useRef();
-  const dispatch=useDispatch()
+  const dispatch = useDispatch()
   const navigate = useNavigate();
   useEffect(() => {
     if (imageFile) {
@@ -36,7 +36,7 @@ function DashProfile() {
 
   const uploadImage = async () => {
     setUploadInProgress(true);
-    console.log("upload",uploadInProgress)
+    console.log("upload", uploadInProgress)
     setImageFileUploadError(null);
     setImageFileUploadSuccess(null)
     const storage = getStorage(app);
@@ -60,7 +60,7 @@ function DashProfile() {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-          console.log("downloadurl",downloadUrl)
+          console.log("downloadurl", downloadUrl)
           setImageUrl(downloadUrl);
           setUploadInProgress(null);
           setImageFileUploadError(null);
@@ -89,58 +89,58 @@ function DashProfile() {
     }
   };
 
-  const handleUpdateProfile = async(e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setUpdateUserError(null)
     setUpdateUserSuccess(null)
-    if (username === initialUsername && email === initialEmail && !password && imageFileUrl===currentUser.rest.profilePicture) {
+    if (username === initialUsername && email === initialEmail && !password && imageFileUrl === currentUser.rest.profilePicture) {
       return setErrorMessage("No changes made!");
     }
-  try {
-    dispatch(updateStart())
-    const response=await fetch('/api/update/'+currentUser.rest._id,{
-      method:'POST',
-          headers:{
-            'Content-Type':'application/json'
-          },
-          body:JSON.stringify({username,email,password,profilePicture:imageFileUrl})
-     })
-    const data=await response.json()
-    // console.log(data.message)
-    if(!response.ok){
-      dispatch(updateFailure(data.message))
-      setUpdateUserError(data.message)
+    try {
+      dispatch(updateStart())
+      const response = await fetch('/api/update/' + currentUser.rest._id, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, email, password, profilePicture: imageFileUrl })
+      })
+      const data = await response.json()
+      // console.log(data.message)
+      if (!response.ok) {
+        dispatch(updateFailure(data.message))
+        setUpdateUserError(data.message)
+      }
+      else {
+        dispatch(updateSuccess(data))
+        setErrorMessage(null);
+        setUpdateUserSuccess('User profile updated successfully');
+        setTimeout(() => {
+          setUpdateUserSuccess(null);
+        }, 2000);
+      }
+    } catch (error) {
+      dispatch(updateFailure(error.message))
+      setUpdateUserError(error.message)
     }
-    else{
-      dispatch(updateSuccess(data))
-      setErrorMessage(null);
-      setUpdateUserSuccess('User profile updated successfully');
-      setTimeout(() => {
-        setUpdateUserSuccess(null);
-      }, 2000);
-    }
-  } catch (error) {
-    dispatch(updateFailure(error.message))
-    setUpdateUserError(error.message)
-  }
   };
-  async function handleDeletAccount(){
+  async function handleDeletAccount() {
     setShowModal(false)
     try {
       dispatch(deleteUserStart())
-      const response =await fetch('/api/delete/'+currentUser.rest._id,{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json'
+      const response = await fetch('/api/delete/' + currentUser.rest._id, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
         // body: JSON.stringify({token: currentUser.rest.token})
-        
+
       })
-      const data=await response.json()
+      const data = await response.json()
       if (!response.ok) {
         dispatch(deleteUserFailure(data.message))
       }
-      else{
+      else {
         dispatch(deleteUserSuccess(data))
         navigate('/signup');
       }
@@ -148,24 +148,24 @@ function DashProfile() {
       dispatch(deleteUserFailure(error.message))
     }
   }
-  async function handleSignOut(){
-  try {
-    const  response= await fetch('/api/signout',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
+  async function handleSignOut() {
+    try {
+      const response = await fetch('/api/signout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const data = await response.json();
+      if (!response.ok) {
+        setSignOut(data.message)
       }
-    })
-    const data=await  response.json();
-    if(!response.ok){
-      setSignOut(data.message)
+      else {
+        dispatch(signOutSuccess())
+      }
+    } catch (error) {
+      setSignOut(error.message)
     }
-    else{
-      dispatch(signOutSuccess())
-    }
-  } catch (error) {
-    setSignOut(error.message)
-  }
   }
   return (
     <div className='max-w-lg mx-auto p-3 w-full'>
@@ -186,7 +186,7 @@ function DashProfile() {
           {imageFileUploadError}
         </Alert>
         }
-       {imageFileUploadSuccess && (
+        {imageFileUploadSuccess && (
           <Alert color="success">
             Your profile picture has been updated successfully!
           </Alert>
@@ -194,35 +194,42 @@ function DashProfile() {
         <TextInput placeholder='' type='text' value={username || ''} onChange={e => setUserName(e.target.value)} id='username' />
         <TextInput placeholder='' type='email' value={email || ''} onChange={e => setEmail(e.target.value)} id='email' />
         <TextInput placeholder='Password' type='password' value={password || ''} onChange={e => setPassword(e.target.value)} id='password' />
-        <Button outline gradientDuoTone="purpleToBlue" onClick={handleUpdateProfile}>
-          Update
+        <Button outline gradientDuoTone="purpleToBlue" onClick={handleUpdateProfile} disabled={loading}>
+          {loading?'loading...':'Update'}
         </Button>
+        {currentUser?.rest?.isAdmin && (
+          <Link to='/createpost' >
+            <Button type='button' className='w-full'  gradientDuoTone="purpleToPink">
+              Create Post
+            </Button>
+          </Link>
+        )}
       </form>
       {
-            errorMessage && (
-              <Alert className='mt-5' color='failure' withBorderAccent>
-                {errorMessage}
-              </Alert>
-            )
-          }
+        errorMessage && (
+          <Alert className='mt-5' color='failure' withBorderAccent>
+            {errorMessage}
+          </Alert>
+        )
+      }
       <div className='text-red-500 justify-between flex mt-5'>
-        <span onClick={()=>setShowModal(true)} className='cursor-pointer'>Delete Account</span>
+        <span onClick={() => setShowModal(true)} className='cursor-pointer'>Delete Account</span>
         <span onClick={handleSignOut} className='cursor-pointer'>Sign Out</span>
       </div>
-      {updateUserSuccess &&(
+      {updateUserSuccess && (
         <Alert color='success' className='mt-5'>{updateUserSuccess}</Alert>
       )}
-       {updateUserError &&(
+      {updateUserError && (
         <Alert color='failure' className='mt-5'>{updateUserError}</Alert>
       )}
-       {error &&(
+      {error && (
         <Alert color='failure' className='mt-5'>{error}</Alert>
       )}
-       {signOut &&(
+      {signOut && (
         <Alert color='success' className='mt-5'>User has been signout successfully</Alert>
       )}
-      <Modal show={showModal} onClose={()=>setShowModal(false)} popup size='md'>
-      <Modal.Header />
+      <Modal show={showModal} onClose={() => setShowModal(false)} popup size='md'>
+        <Modal.Header />
         <Modal.Body>
           <div className="text-center">
             <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />

@@ -9,6 +9,8 @@ import Header from './components/Header';
 import { BrowserRouter as Router, Route, Routes, BrowserRouter } from 'react-router-dom';
 import FooterComponent from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
+import OnlyPrivateRoute from './components/OnlyPrivateRoute';
+import CreatePost from './pages/CreatePost';
 function App() {
   return (
     <BrowserRouter>
@@ -21,6 +23,9 @@ function App() {
       <Route path="/signup" element={<SignUp />}></Route>
       <Route  element={<PrivateRoute />}>
       <Route path="/dashboard" element={<Dashboard />}></Route>
+      </Route>
+      <Route  element={<OnlyPrivateRoute />}>
+      <Route path="/createpost" element={<CreatePost />}></Route>
       </Route>
     </Routes>
     <FooterComponent/>
