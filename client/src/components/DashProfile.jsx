@@ -53,7 +53,7 @@ function DashProfile() {
       (error) => {
         setUploadInProgress(null);
         setImageFileUploadSuccess(null)
-        setImageFileUploadError("There was an error while uploading the image: Only images up to 2 MB can be uploaded");
+        setImageFileUploadError("There was an error while uploading the image: Only images up to 2 MB can be uploaded!");
         setTimeout(() => {
           setImageFileUploadError(null);
         }, 3000);
