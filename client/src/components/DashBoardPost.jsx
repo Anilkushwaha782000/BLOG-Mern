@@ -6,6 +6,7 @@ function DashBoardPost() {
   const[postError, setPostError] = useState(false)
   const[userPost,setUserPost]=useState([])
   const { currentUser } = useSelector(state => state.user)
+  const[showMore,setShowMore]=useState(true)
   useEffect(()=>{
     const fetchPost=async()=>{
     try {
@@ -16,6 +17,9 @@ function DashBoardPost() {
       }
       if(response.ok){
         setUserPost(data.posts)
+        if(data.posts.length<9){
+          setShowMore(false)
+        }
       }
     } catch (error) {
       setPostError(error.message)
@@ -25,8 +29,26 @@ function DashBoardPost() {
       fetchPost()
     }
   },[currentUser.rest._id])
+  const handleShowMore=async ()=>{
+    const startIndex=userPost.length
+    try {
+      const response=await fetch(`/api/getpost?userId=${currentUser.rest._id}&startIndex= ${startIndex}`)
+      const data=await response.json()
+      if(!response.ok){
+        setPostError(data.message)
+      }
+      if(response.ok){
+        setUserPost(prev=>[...prev, ...data.posts])
+        if(data.posts.length<9){
+          setShowMore(false)
+        }
+      }
+    } catch (error) {
+      setPostError(error.message)
+    }
+  }
   return (
-    <div className='table-auto  md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-800 dark:scrollbar-thumb-slate-500'>
+    <div className='table-auto w-full md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-800 dark:scrollbar-thumb-slate-500'>
       { currentUser.rest.isAdmin && userPost.length>0?(
         <div className='overflow-x-auto'>
          <Table hoverable className='shadow-md'>
@@ -73,6 +95,9 @@ function DashBoardPost() {
           ))
         }
          </Table>
+         {showMore && (
+          <button onClick={handleShowMore} className='w-full text-teal-500 self-center text-sm py-7 cursor-pointer'>Show more</button>
+         )}
         </div>
       ):(
         <p>You have no post yet, please add some post!</p>
