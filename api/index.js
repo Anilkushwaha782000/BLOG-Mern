@@ -253,6 +253,38 @@ try {
     return  res.status(500).json({message:error.message,success:false});
 }
 })
+app.post('/api/deletepost/:postId/:userId',async (req,res)=>{
+    const token=req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    }
+    else{
+        try {
+            jwt.verify(token,process.env.JWT_SECRET,async (error,user)=>{
+                if(error){
+                    return res.status(500).json({message:error.message,success:false});  
+                }
+                req.user=user
+                if(!req.user.isAdmin || req.user.id!=req.params.userId){
+                    return  res.status(403).json({message:'You are not authorised to delete a post!',success:false,statusCode:403});
+                }
+                try {
+                    const deletedPost=await Post.findByIdAndDelete(req.params.postId)
+                    if (!deletedPost) {
+                        return res.status(404).json({ message: 'Post not found' });
+                      }
+                   else{
+                   return res.status(201).json({message:'post deleted successfully',success:true,deletedPost})
+                   }
+                } catch (error) {
+                    return  res.status(500).json({message:error.message,success:false});  
+                }
+            })
+        } catch (error) {
+            return  res.status(500).json({message:error.message,success:false});
+        }
+    }
+})
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
