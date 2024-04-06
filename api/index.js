@@ -285,6 +285,49 @@ app.post('/api/deletepost/:postId/:userId',async (req,res)=>{
         }
     }
 })
+app.put('/api/updatepost/:postId/:userId',async (req,res)=>{
+    const token=req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    }
+    else{
+        try {
+            jwt.verify(token,process.env.JWT_SECRET,async (error,user)=>{
+                if(error){
+                    return res.status(500).json({message:error.message,success:false});  
+                }
+                req.user=user
+                if(!req.user.isAdmin || req.user.id!=req.params.userId){
+                    return  res.status(403).json({message:'You are not authorised to update a post!',success:false,statusCode:403});
+                }
+                try {
+                    const updatePost=await Post.findByIdAndUpdate(
+                        req.params.postId,
+                        {
+                            $set:{
+                                title:req.body.title,
+                                content:req.body.content,
+                                image:req.body.image,
+                                category:req.body.category
+                            }
+                        },
+                        {new:true}
+                    )
+                    if (!updatePost) {
+                        return res.status(404).json({ message: 'Post not found' });
+                      }
+                   else{
+                   return res.status(201).json({message:'Post has been updated successfully!',success:true,updatePost})
+                   }
+                } catch (error) {
+                    return  res.status(500).json({message:error.message,success:false});  
+                }
+            })
+        } catch (error) {
+            return  res.status(500).json({message:error.message,success:false});
+        }
+    }
+})
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
