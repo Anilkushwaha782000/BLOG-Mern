@@ -216,7 +216,43 @@ app.post('/api/createpost',(req,res)=>{
         }
     }
 })
-
+app.get('/api/getpost',async (req,res)=>{
+try {
+    const startIndex=parseInt(req.query.startIndex) ||0 ;
+    const limit=parseInt(req.query.limit)||9;
+    const sortOrder=req.query.order==='asc'?1:-1;
+    const posts=await Post.find({
+        ...(req.query.userId && {userId:req.query.userId} ),
+        ...(req.query.category && {category:req.query.category} ),
+        ...(req.query.slug && {slug:req.query.slug} ),
+        ...(req.query.postId && {_id:req.query.postId} ),
+        ...(req.query.searchterm && {
+            $or:[
+                {title:{'$regex':req.query.searchterm,$options:"i"}},
+                {content:{'$regex':req.query.searchterm,$options:"i"}}
+            ]
+        } )
+    }
+    ).sort({updatedAt:sortOrder}).skip(startIndex).limit(limit);
+      const totalPost=await Post.countDocuments()
+      const now=new Date()
+      const oneMonthAgo=new Date(
+        now.getFullYear(),
+        now.getMonth()-1,
+        now.getDate()
+      )
+      const lastMonthPost=await Post.countDocuments({
+        createdAt:{$gt:oneMonthAgo}
+      })
+      res.status(200).json({
+        lastMonthPost,
+        totalPost,
+        posts
+      })
+} catch (error) {
+    return  res.status(500).json({message:error.message,success:false});
+}
+})
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
