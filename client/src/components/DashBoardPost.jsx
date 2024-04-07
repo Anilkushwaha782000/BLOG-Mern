@@ -9,8 +9,9 @@ function DashBoardPost() {
   const { currentUser } = useSelector(state => state.user)
   const [showMore, setShowMore] = useState(true)
   const [openModal, setOpenModal] = useState(false);
-  const [postIdToDelete,setPostIdToDelete]=useState('')
+  const [postIdToDelete,setPostIdToDelete]=useState(null)
   const [deletePostError,setDeletePostError]=useState(null)
+  const [postdeletemessage,setPostDeleteMessage]=useState(null)
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -51,10 +52,10 @@ function DashBoardPost() {
       setPostError(error.message)
     }
   }
-  const handleDeletePost = async (postId) => {
+  const handleDeletePost = async () => {
     setOpenModal(false)
     try {
-  const response=await fetch(`/api/deletepost/${postId}/${currentUser.rest._id}`,{
+  const response=await fetch(`/api/deletepost/${postIdToDelete}/${currentUser.rest._id}`,{
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -65,10 +66,12 @@ function DashBoardPost() {
     setDeletePostError(data.message)
   }
   else{
-    setUserPost(prev => prev.filter(val => val._id !== postId));
-    setPostIdToDelete('Post has been deleted Successfully!')
+    setUserPost(prev => prev.filter(val => val._id !== postIdToDelete));
+    setPostIdToDelete(null)
+    setPostDeleteMessage('Post has been deleted successfully!')
     setTimeout(()=>{
-      setPostIdToDelete('')
+      setPostIdToDelete(null)
+      setPostDeleteMessage(null)
     },3000)
   }
 
@@ -78,8 +81,8 @@ function DashBoardPost() {
   }
   return (
     <div className='table-auto w-full md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-800 dark:scrollbar-thumb-slate-500'>
-        {postIdToDelete && (
-        <Alert color='success' className='mt-5 mb-5'>{postIdToDelete}</Alert>
+        {postdeletemessage && (
+        <Alert color='success' className='mt-5 mb-5'>{postdeletemessage}</Alert>
       )}
       {currentUser.rest.isAdmin && userPost.length > 0 ? (
         <div className='overflow-x-auto'>
@@ -119,7 +122,7 @@ function DashBoardPost() {
                         className='text-red-500 cursor-pointer hover:underline'
                         onClick={() => {
                           setOpenModal(true);
-                          handleDeletePost(post._id);
+                          setPostIdToDelete(post._id);
                         }}
                       >
                         Delete
@@ -153,7 +156,7 @@ function DashBoardPost() {
               Are you sure you want to delete this post?
             </h3>
             <div className="flex justify-center gap-4">
-              <Button color="failure" onClick={() => setOpenModal(false)}>
+              <Button color="failure" onClick={() => {setOpenModal(false),handleDeletePost()}}>
                 {"Yes, I'm sure"}
               </Button>
               <Button color="gray" onClick={() => setOpenModal(false)}>

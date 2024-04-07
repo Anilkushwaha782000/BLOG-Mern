@@ -12,6 +12,7 @@ import PrivateRoute from './components/PrivateRoute';
 import OnlyPrivateRoute from './components/OnlyPrivateRoute';
 import CreatePost from './pages/CreatePost';
 import UpdatePost from './pages/UpdatePost';
+import Users from './components/Users';
 function App() {
   return (
     <BrowserRouter>
@@ -28,6 +29,7 @@ function App() {
       <Route  element={<OnlyPrivateRoute />}>
       <Route path="/createpost" element={<CreatePost />}></Route>
       <Route path="/updatepost/:postId" element={<UpdatePost />}></Route>
+      <Route path='/users' element={<Users/>}></Route>
       </Route>
     </Routes>
     <FooterComponent/>

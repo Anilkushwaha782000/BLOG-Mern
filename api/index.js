@@ -160,7 +160,7 @@ app.post('/api/delete/:userId',(req,res)=>{
                 req.user = user;
                 // console.log("req.user",req.user.id)
                 // console.log("req.param",req.params.userId)
-                if (req.user.id != req.params.userId) {
+                if (!req.user.isAdmin && req.user.id != req.params.userId) {
                     return res.status(403).json({ message: 'User is not allowed to delete  the account', success: false });
                 }
                 try {
@@ -325,6 +325,42 @@ app.put('/api/updatepost/:postId/:userId',async (req,res)=>{
             })
         } catch (error) {
             return  res.status(500).json({message:error.message,success:false});
+        }
+    }
+})
+app.get('/api/getusers',async (req,res)=>{
+    const token=req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json('You are not allow to fetch user data!');
+    }
+    else{
+        try {
+            const startIndex=parseInt(req.query.startIndex) ||0 ;
+            const limit=parseInt(req.query.limit)||9;
+            const sortOrder=req.query.order==='asc'?1:-1;
+            const userDoc=await User.find().sort({createdAt:sortOrder}).skip(startIndex).limit(limit);
+            const users=userDoc.map((user)=>{
+                const{password,...otherUserData}=user._doc;
+                return otherUserData;
+            })
+            const totalUser = await User.countDocuments();
+            const now=new Date()
+            const oneMonthAgoUser=new Date(
+              now.getFullYear(),
+              now.getMonth()-1,
+              now.getDate()
+            )
+            const lastMonthUser=await User.countDocuments({
+              createdAt:{$gt:oneMonthAgoUser}
+            })
+            if(!userDoc){
+                return res.json({message:"Users not found!"})
+            }
+            else{
+                return res.json({users,success:true,totalUser,lastMonthUser})
+            }
+        } catch (error) {
+            return  res.status(500).json({message:error.message,success:false});   
         }
     }
 })
