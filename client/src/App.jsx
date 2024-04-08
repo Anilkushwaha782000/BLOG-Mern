@@ -13,6 +13,7 @@ import OnlyPrivateRoute from './components/OnlyPrivateRoute';
 import CreatePost from './pages/CreatePost';
 import UpdatePost from './pages/UpdatePost';
 import Users from './components/Users';
+import PostPage from './pages/PostPage';
 function App() {
   return (
     <BrowserRouter>
@@ -31,6 +32,7 @@ function App() {
       <Route path="/updatepost/:postId" element={<UpdatePost />}></Route>
       <Route path='/users' element={<Users/>}></Route>
       </Route>
+      <Route path="/post/:postslug" element={<PostPage />}></Route>
     </Routes>
     <FooterComponent/>
     </BrowserRouter>

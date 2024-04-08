@@ -14,7 +14,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
     console.log("could not connect to the  mongodb");
 })
 const User = require("./models/UserModel")
-const Post=require('./models/PostModal')
+const Post = require('./models/PostModal')
 app.get("/test", (req, res) => {
     res.json("hello from server side");
 })
@@ -48,8 +48,8 @@ app.post('/api/signin', async (req, res) => {
             if (!validPassword) {
                 return res.status(400).json({ message: "Invalid Password", status: 400, success: false })
             }
-            const token = jwt.sign({ id: validUser._id,isAdmin:validUser.isAdmin }, process.env.JWT_SECRET);
-            const { password:userPassword, ...rest } = validUser._doc
+            const token = jwt.sign({ id: validUser._id, isAdmin: validUser.isAdmin }, process.env.JWT_SECRET);
+            const { password: userPassword, ...rest } = validUser._doc
             if (token) {
                 return res.status(200).cookie("access_token", token, { httpOnly: true }).json({ message: "Signin successfull", success: true, rest })
             }
@@ -69,7 +69,7 @@ app.post('/api/google', async (req, res) => {
     try {
         const user = await User.findOne({ email })
         if (user) {
-            const token = jwt.sign({ id: user._id,isAdmin:user.isAdmin }, process.env.JWT_SECRET)
+            const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET)
             const { password, ...rest } = user._doc
             return res.status(200).cookie('access_token', token, { httpOnly: true }).json({ message: "Logged in Successfully", status: 200, rest })
         }
@@ -82,7 +82,7 @@ app.post('/api/google', async (req, res) => {
                 profilePicture: image, password: hashedPassword
             })
             const saveUser = await newUser.save()
-            const token = jwt.sign({ id: saveUser._id,isAdmin:saveUser.isAdmin}, process.env.JWT_SECRET)
+            const token = jwt.sign({ id: saveUser._id, isAdmin: saveUser.isAdmin }, process.env.JWT_SECRET)
             const { password, ...rest } = saveUser._doc
             return res.status(200).cookie('access_token', token, { httpOnly: true }).json({ message: "Logged in Successfully", status: 200, rest })
         }
@@ -100,7 +100,7 @@ app.post('/api/update/:userId', async (req, res) => {
         try {
             jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
                 if (error) {
-                    return res.status(500).json({message:error.message,success:false});
+                    return res.status(500).json({ message: error.message, success: false });
                 }
                 req.user = user;
                 if (req.user.id != req.params.userId) {
@@ -138,24 +138,24 @@ app.post('/api/update/:userId', async (req, res) => {
                     const { password, ...rest } = updatedUser._doc
                     return res.status(200).json({ message: 'User updated successfully', success: true, rest });
                 } catch (error) {
-                    return res.status(500).json({message:error.message,success:false});
+                    return res.status(500).json({ message: error.message, success: false });
                 }
             });
         } catch (error) {
-            return res.status(500).json({message:error.message,success:false});
+            return res.status(500).json({ message: error.message, success: false });
         }
     }
 });
-app.post('/api/delete/:userId',(req,res)=>{
+app.post('/api/delete/:userId', (req, res) => {
     const token = req.cookies.access_token;
     if (!token) {
         return res.status(401).json('Unauthorized!');
     }
-    else{
+    else {
         try {
-            jwt.verify(token,process.env.JWT_SECRET,async (err,user)=>{
-                if(err){
-                    return res.status(500).json({message:"Internal server error!",success:false});  
+            jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
+                if (err) {
+                    return res.status(500).json({ message: "Internal server error!", success: false });
                 }
                 req.user = user;
                 // console.log("req.user",req.user.id)
@@ -165,202 +165,213 @@ app.post('/api/delete/:userId',(req,res)=>{
                 }
                 try {
                     await User.findByIdAndDelete(req.params.userId);
-                    res.status(200).json({message:'User has been deleted successfully', success:true})
+                    res.status(200).json({ message: 'User has been deleted successfully', success: true })
                 } catch (error) {
-                    return res.status(500).json({message:error.message,success:false});  
+                    return res.status(500).json({ message: error.message, success: false });
                 }
             })
         } catch (error) {
-            return res.status(500).json({message:error.message,success:false}); 
+            return res.status(500).json({ message: error.message, success: false });
         }
     }
 })
-app.post('/api/signout',async (req,res)=>{
-  try {
-    res.clearCookie('access_token').status(200).json({message:'User has been signout successfully',success:true})
-  } catch (error) {
-    return  res.status(500).json({message:error.message,success:false});
-  }
+app.post('/api/signout', async (req, res) => {
+    try {
+        res.clearCookie('access_token').status(200).json({ message: 'User has been signout successfully', success: true })
+    } catch (error) {
+        return res.status(500).json({ message: error.message, success: false });
+    }
 })
-app.post('/api/createpost',(req,res)=>{
-    const token=req.cookies.access_token;
+app.post('/api/createpost', (req, res) => {
+    const token = req.cookies.access_token;
     if (!token) {
         return res.status(401).json('Unauthorized!');
     }
-    else{
+    else {
         try {
-            jwt.verify(token,process.env.JWT_SECRET,async (error,user)=>{
-                if(error){
-                    return res.status(500).json({message:error.message,success:false});  
+            jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
+                if (error) {
+                    return res.status(500).json({ message: error.message, success: false });
                 }
-                req.user=user
-                if(!req.user.isAdmin){
-                    return  res.status(403).json({message:'You are not authorised to create a post!',success:false,statusCode:403});
+                req.user = user
+                if (!req.user.isAdmin) {
+                    return res.status(403).json({ message: 'You are not authorised to create a post!', success: false, statusCode: 403 });
                 }
-                if(!req.body.title || !req.body.content){
-                    return  res.status(403).json({message:'Please provide all the details for publishing the post!'});
+                if (!req.body.title || !req.body.content) {
+                    return res.status(403).json({ message: 'Please provide all the details for publishing the post!' });
                 }
-                const slug=req.body.title.split(' ').join('-').toLowerCase().replace(/[^a-zA-Z0-9-]/g,'');
-                const newPost=new Post({
-                    ...req.body,slug,userId:req.user.id
+                const slug = req.body.title.split(' ').join('-').toLowerCase().replace(/[^a-zA-Z0-9-]/g, '');
+                const newPost = new Post({
+                    ...req.body, slug, userId: req.user.id
                 })
                 try {
-                    const savedPost=await newPost.save();
-                    return res.status(201).json({message:'Blog has been saved successfully',success:true,savedPost})
+                    const savedPost = await newPost.save();
+                    return res.status(201).json({ message: 'Blog has been saved successfully', success: true, savedPost })
                 } catch (error) {
-                    return  res.status(500).json({message:error.message,success:false});  
+                    return res.status(500).json({ message: error.message, success: false });
                 }
             })
         } catch (error) {
-            return  res.status(500).json({message:error.message,success:false});
+            return res.status(500).json({ message: error.message, success: false });
         }
     }
 })
-app.get('/api/getpost',async (req,res)=>{
-try {
-    const startIndex=parseInt(req.query.startIndex) ||0 ;
-    const limit=parseInt(req.query.limit)||9;
-    const sortOrder=req.query.order==='asc'?1:-1;
-    const posts=await Post.find({
-        ...(req.query.userId && {userId:req.query.userId} ),
-        ...(req.query.category && {category:req.query.category} ),
-        ...(req.query.slug && {slug:req.query.slug} ),
-        ...(req.query.postId && {_id:req.query.postId} ),
-        ...(req.query.searchterm && {
-            $or:[
-                {title:{'$regex':req.query.searchterm,$options:"i"}},
-                {content:{'$regex':req.query.searchterm,$options:"i"}}
-            ]
-        } )
+app.get('/api/getpost', async (req, res) => {
+    try {
+        const startIndex = parseInt(req.query.startIndex) || 0;
+        const limit = parseInt(req.query.limit) || 9;
+        const sortOrder = req.query.order === 'asc' ? 1 : -1;
+        const query = {};
+
+        if (req.query.userId) {
+            query.userId = req.query.userId;
+        }
+
+        if (req.query.category) {
+            query.category = req.query.category;
+        }
+
+        if (req.query.slug !== null && req.query.slug !== undefined) {
+            query.slug = req.query.slug.trim();
+        }
+
+        if (req.query.postId) {
+            query._id = req.query.postId;
+        }
+        if (req.query.searchterm) {
+            query.$or = [
+                { title: { '$regex': req.query.searchterm, $options: "i" } },
+                { content: { '$regex': req.query.searchterm, $options: "i" } }
+            ];
+        }
+        const posts = await Post.find(query).sort({ updatedAt: sortOrder }).skip(startIndex).limit(limit);
+        const totalPost = await Post.countDocuments()
+        const now = new Date()
+        const oneMonthAgo = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            now.getDate()
+        )
+        const lastMonthPost = await Post.countDocuments({
+            createdAt: { $gt: oneMonthAgo }
+        })
+        res.status(200).json({
+            lastMonthPost,
+            totalPost,
+            posts
+        })
+    } catch (error) {
+        return res.status(500).json({ message: error.message, success: false });
     }
-    ).sort({updatedAt:sortOrder}).skip(startIndex).limit(limit);
-      const totalPost=await Post.countDocuments()
-      const now=new Date()
-      const oneMonthAgo=new Date(
-        now.getFullYear(),
-        now.getMonth()-1,
-        now.getDate()
-      )
-      const lastMonthPost=await Post.countDocuments({
-        createdAt:{$gt:oneMonthAgo}
-      })
-      res.status(200).json({
-        lastMonthPost,
-        totalPost,
-        posts
-      })
-} catch (error) {
-    return  res.status(500).json({message:error.message,success:false});
-}
 })
-app.post('/api/deletepost/:postId/:userId',async (req,res)=>{
-    const token=req.cookies.access_token;
+app.post('/api/deletepost/:postId/:userId', async (req, res) => {
+    const token = req.cookies.access_token;
     if (!token) {
         return res.status(401).json('Unauthorized!');
     }
-    else{
+    else {
         try {
-            jwt.verify(token,process.env.JWT_SECRET,async (error,user)=>{
-                if(error){
-                    return res.status(500).json({message:error.message,success:false});  
+            jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
+                if (error) {
+                    return res.status(500).json({ message: error.message, success: false });
                 }
-                req.user=user
-                if(!req.user.isAdmin || req.user.id!=req.params.userId){
-                    return  res.status(403).json({message:'You are not authorised to delete a post!',success:false,statusCode:403});
+                req.user = user
+                if (!req.user.isAdmin || req.user.id != req.params.userId) {
+                    return res.status(403).json({ message: 'You are not authorised to delete a post!', success: false, statusCode: 403 });
                 }
                 try {
-                    const deletedPost=await Post.findByIdAndDelete(req.params.postId)
+                    const deletedPost = await Post.findByIdAndDelete(req.params.postId)
                     if (!deletedPost) {
                         return res.status(404).json({ message: 'Post not found' });
-                      }
-                   else{
-                   return res.status(201).json({message:'post deleted successfully',success:true,deletedPost})
-                   }
+                    }
+                    else {
+                        return res.status(201).json({ message: 'post deleted successfully', success: true, deletedPost })
+                    }
                 } catch (error) {
-                    return  res.status(500).json({message:error.message,success:false});  
+                    return res.status(500).json({ message: error.message, success: false });
                 }
             })
         } catch (error) {
-            return  res.status(500).json({message:error.message,success:false});
+            return res.status(500).json({ message: error.message, success: false });
         }
     }
 })
-app.put('/api/updatepost/:postId/:userId',async (req,res)=>{
-    const token=req.cookies.access_token;
+app.put('/api/updatepost/:postId/:userId', async (req, res) => {
+    const token = req.cookies.access_token;
     if (!token) {
         return res.status(401).json('Unauthorized!');
     }
-    else{
+    else {
         try {
-            jwt.verify(token,process.env.JWT_SECRET,async (error,user)=>{
-                if(error){
-                    return res.status(500).json({message:error.message,success:false});  
+            jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
+                if (error) {
+                    return res.status(500).json({ message: error.message, success: false });
                 }
-                req.user=user
-                if(!req.user.isAdmin || req.user.id!=req.params.userId){
-                    return  res.status(403).json({message:'You are not authorised to update a post!',success:false,statusCode:403});
+                req.user = user
+                if (!req.user.isAdmin || req.user.id != req.params.userId) {
+                    return res.status(403).json({ message: 'You are not authorised to update a post!', success: false, statusCode: 403 });
                 }
                 try {
-                    const updatePost=await Post.findByIdAndUpdate(
+                    const updatePost = await Post.findByIdAndUpdate(
                         req.params.postId,
                         {
-                            $set:{
-                                title:req.body.title,
-                                content:req.body.content,
-                                image:req.body.image,
-                                category:req.body.category
+                            $set: {
+                                title: req.body.title,
+                                content: req.body.content,
+                                image: req.body.image,
+                                category: req.body.category
                             }
                         },
-                        {new:true}
+                        { new: true }
                     )
                     if (!updatePost) {
                         return res.status(404).json({ message: 'Post not found' });
-                      }
-                   else{
-                   return res.status(201).json({message:'Post has been updated successfully!',success:true,updatePost})
-                   }
+                    }
+                    else {
+                        return res.status(201).json({ message: 'Post has been updated successfully!', success: true, updatePost })
+                    }
                 } catch (error) {
-                    return  res.status(500).json({message:error.message,success:false});  
+                    return res.status(500).json({ message: error.message, success: false });
                 }
             })
         } catch (error) {
-            return  res.status(500).json({message:error.message,success:false});
+            return res.status(500).json({ message: error.message, success: false });
         }
     }
 })
-app.get('/api/getusers',async (req,res)=>{
-    const token=req.cookies.access_token;
+app.get('/api/getusers', async (req, res) => {
+    const token = req.cookies.access_token;
     if (!token) {
         return res.status(401).json('You are not allow to fetch user data!');
     }
-    else{
+    else {
         try {
-            const startIndex=parseInt(req.query.startIndex) ||0 ;
-            const limit=parseInt(req.query.limit)||9;
-            const sortOrder=req.query.order==='asc'?1:-1;
-            const userDoc=await User.find().sort({createdAt:sortOrder}).skip(startIndex).limit(limit);
-            const users=userDoc.map((user)=>{
-                const{password,...otherUserData}=user._doc;
+            const startIndex = parseInt(req.query.startIndex) || 0;
+            const limit = parseInt(req.query.limit) || 9;
+            const sortOrder = req.query.order === 'asc' ? 1 : -1;
+            const userDoc = await User.find().sort({ createdAt: sortOrder }).skip(startIndex).limit(limit);
+            const users = userDoc.map((user) => {
+                const { password, ...otherUserData } = user._doc;
                 return otherUserData;
             })
             const totalUser = await User.countDocuments();
-            const now=new Date()
-            const oneMonthAgoUser=new Date(
-              now.getFullYear(),
-              now.getMonth()-1,
-              now.getDate()
+            const now = new Date()
+            const oneMonthAgoUser = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                now.getDate()
             )
-            const lastMonthUser=await User.countDocuments({
-              createdAt:{$gt:oneMonthAgoUser}
+            const lastMonthUser = await User.countDocuments({
+                createdAt: { $gt: oneMonthAgoUser }
             })
-            if(!userDoc){
-                return res.json({message:"Users not found!"})
+            if (!userDoc) {
+                return res.json({ message: "Users not found!" })
             }
-            else{
-                return res.json({users,success:true,totalUser,lastMonthUser})
+            else {
+                return res.json({ users, success: true, totalUser, lastMonthUser })
             }
         } catch (error) {
-            return  res.status(500).json({message:error.message,success:false});   
+            return res.status(500).json({ message: error.message, success: false });
         }
     }
 })
