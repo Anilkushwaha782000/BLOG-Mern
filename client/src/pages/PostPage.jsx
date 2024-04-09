@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import {Link, useParams} from  "react-router-dom";
 import { Button, Spinner } from "flowbite-react";
+import CallToAction from './CallToAction';
 function PostPage() {
     const{postslug}=useParams()
     const[postError,setPostError]=useState(null)
@@ -49,6 +50,9 @@ if(loading){
         </div>
         <div className='p-3 max-w-2xl mx-auto w-full post-content' dangerouslySetInnerHTML={{__html:post && post.content}}>
 
+        </div>
+        <div className='max-w-4xl mx-auto w-full'>
+            <CallToAction/>
         </div>
     </main>
   )
