@@ -15,6 +15,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 })
 const User = require("./models/UserModel")
 const Post = require('./models/PostModal')
+const Comment=require('./models/CommentModal')
 app.get("/test", (req, res) => {
     res.json("hello from server side");
 })
@@ -375,6 +376,75 @@ app.get('/api/getusers', async (req, res) => {
         }
     }
 })
+
+app.post('/api/createcomment', async (req, res) => {
+    const token = req.cookies.access_token;
+    const {userId,postId,content}=req.body;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    }
+    else {
+        try {
+            jwt.verify(token, process.env.JWT_SECRET, async (error, user) => {
+                if (error) {
+                    return res.status(500).json({ message: error.message, success: false });
+                }
+                req.user = user
+                if (userId !=req.user.id ) {
+                    return res.status(403).json({ message: 'You are not authorised to comment  on post!', success: false, statusCode: 403 });
+                }
+                try {
+                   const newComment=new Comment({
+                    content,postId,userId
+                   })
+                   const commentDoc=await newComment.save();
+
+                    if (!commentDoc) {
+                        return res.status(500).json({ message: 'Internal server error' });
+                    }
+                    else {
+                        return res.status(201).json({ message: 'Comment been updated successfully!', success: true, commentDoc })
+                    }
+                } catch (error) {
+                    return res.status(500).json({ message: error.message, success: false });
+                }
+            })
+        } catch (error) {
+            return res.status(500).json({ message: error.message, success: false });
+        }
+    }
+})
+app.get('/api/getpostcomments/:postId',async (req,res)=>{
+try {
+    const comments= await Comment.find({postId:req.params.postId}).sort({
+        createdAt:-1
+    })
+    if(!comments){
+        return res.status(404).json("No comments found")
+    }
+    else{
+        return res.status(200).json({comments,statusCode:200,success:true})
+    }
+    
+} catch (error) {
+    return res.status(500).json({ message: error.message, success: false });
+}
+})
+app.get('/api/:userId',async (req,res)=>{
+    try {
+       const user= await User.findById(req.params.userId); 
+       if(!user){
+        return  res.status(404).json({message: "User not Found",statusCode:404});
+       }
+       else{
+        const {password,...rest}=user._doc;
+        return res.status(201).json({rest,success:true})
+       }
+     
+    } catch (error) {
+        return res.status(500).json({ message: error.message, success: false });
+    }
+    })
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })

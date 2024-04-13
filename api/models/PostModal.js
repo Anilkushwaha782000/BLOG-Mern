@@ -3,7 +3,7 @@ const Schema=mongoose.Schema;
 const postSchema=new Schema({
     title:{type:String,required:true,unique:true},
     userId:{
-        type:String,require:true
+        type:String,required:true
     },
     content:{
         type:String,required:true
