@@ -32,3 +32,6 @@ margin-bottom: 0.5rem;
     color: rgb(4, 53, 85);
 }
 .dark  .post-content a:hover{color: red;}
+.container1{
+    max-width: 800px!important;
+}

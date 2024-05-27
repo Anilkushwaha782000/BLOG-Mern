@@ -445,6 +445,51 @@ app.get('/api/:userId',async (req,res)=>{
         return res.status(500).json({ message: error.message, success: false });
     }
     })
+
+app.put('/api/likecomment/:commentid',(req,res)=>{
+    const token = req.cookies.access_token;
+    const {userId,postId,content}=req.body;
+    if (!token) {
+        return res.status(401).json('Unauthorized!');
+    }
+    else{
+        try {
+            jwt.verify(token,process.env.JWT_SECRET,async(error,user)=>{
+                if(error){
+                    return res.status(500).json({message:'Server Error',statusCode:500,success:false});
+                }
+                else{
+                    req.user=user
+                    console.log("userId",userId)
+                    console.log("requserid",req.user.id)
+                    if (userId !=req.user.id ) {
+                        return res.status(403).json({ message: 'You are not authorised to like on this post!', success: false, statusCode: 403 });
+                    }
+                    const comment=await Comment.findById(req.params.commentid)
+                    if(!comment){
+                        return res.status(404).json({message:'Comment not found',success:true,statusCode:404})
+                    }
+                    const userIndex=comment.likes.indexOf(req.user.id);
+                    if(userIndex===-1){
+                        comment.noOfLikes+=1
+                        comment.likes.push(req.user.id)
+                    }
+                    else{
+                        comment.noOfLikes-=1
+                        comment.likes.splice(userIndex,1)
+                    }
+                    await  comment.save()
+                    return res.status(200).json({message:'User like this post',success:true,comment})
+
+                }
+            })
+            
+        } catch (error) {
+            return res.status(500).json({ message: error.message, success: false });
+        }
+    }
+
+})    
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
