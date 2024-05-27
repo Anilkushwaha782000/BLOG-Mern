@@ -16,6 +16,12 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 const User = require("./models/UserModel")
 const Post = require('./models/PostModal')
 const Comment=require('./models/CommentModal')
+const path=require('path')
+const __dirname=path.resolve()
+app.use(express.static(path.join(__dirname,'/client/dist')))
+app.get('*',(req,res)=>{
+    res.sendFile(path.join(__dirname,'client','dist','index.html'))
+})
 app.get("/test", (req, res) => {
     res.json("hello from server side");
 })
