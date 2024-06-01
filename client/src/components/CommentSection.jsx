@@ -8,7 +8,7 @@ function CommentSection({postId}) {
     const [commentError,setCommentError]=useState(null)
     const[commentSuccess,setCommentSuccess]=useState(null)
     const[comment,setComment]=useState('')
-    console.log("comment like no of likes",comment)
+    console.log("postId postId postId of likes",postId)
     const[fetchComment,setFetchComment]=useState([])
     const navigate=useNavigate()
     const [likeError,setLikeError]=useState(null)

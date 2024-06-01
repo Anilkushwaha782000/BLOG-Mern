@@ -12,14 +12,16 @@ function PostPage() {
      const fetchPost=async ()=>{
       try {
         setLoading(true)
-        const response=await fetch(`/api/getpost?slug= ${postslug}`);
+        const response=await fetch('/api/getpost?slug='+postslug);
         const data=await response.json()
+        console.log("fetchpost",data);
         if(!response.ok){
             setPostError(data.message)
             setLoading(false)
             return;
         }
         if(response.ok){
+          console.log("data fata",data.posts[0])
             setPost(data.posts[0])
             setLoading(false)
             setPostError(null)
@@ -55,7 +57,7 @@ if(loading){
         <div className='max-w-4xl mx-auto w-full'>
             <CallToAction/>
         </div>
-        <CommentSection postId={post._id}/>
+        <CommentSection postId={post && post._id}/>
     </main>
   )
 }

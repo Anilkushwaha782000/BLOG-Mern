@@ -19,9 +19,6 @@ const Comment=require('./models/CommentModal')
 const path=require('path')
 const __dirname1=path.resolve()
 app.use(express.static(path.join(__dirname1,'/client/dist')))
-app.get('*',(req,res)=>{
-    res.sendFile(path.join(__dirname1,'client','dist','index.html'))
-})
 app.get("/test", (req, res) => {
     res.json("hello from server side");
 })
@@ -208,8 +205,9 @@ app.post('/api/createpost', (req, res) => {
                     return res.status(403).json({ message: 'Please provide all the details for publishing the post!' });
                 }
                 const slug = req.body.title.split(' ').join('-').toLowerCase().replace(/[^a-zA-Z0-9-]/g, '');
+                const decodedSlug = decodeURIComponent(slug);
                 const newPost = new Post({
-                    ...req.body, slug, userId: req.user.id
+                    ...req.body, slug:decodedSlug, userId: req.user.id
                 })
                 try {
                     const savedPost = await newPost.save();
@@ -223,13 +221,14 @@ app.post('/api/createpost', (req, res) => {
         }
     }
 })
+
+
 app.get('/api/getpost', async (req, res) => {
     try {
         const startIndex = parseInt(req.query.startIndex) || 0;
         const limit = parseInt(req.query.limit) || 9;
         const sortOrder = req.query.order === 'asc' ? 1 : -1;
         const query = {};
-
         if (req.query.userId) {
             query.userId = req.query.userId;
         }
@@ -239,9 +238,9 @@ app.get('/api/getpost', async (req, res) => {
         }
 
         if (req.query.slug !== null && req.query.slug !== undefined) {
-            query.slug = req.query.slug.trim();
+            query.slug = decodeURIComponent(req.query.slug).trim();
         }
-
+       
         if (req.query.postId) {
             query._id = req.query.postId;
         }
@@ -495,7 +494,11 @@ app.put('/api/likecomment/:commentid',(req,res)=>{
         }
     }
 
-})    
+})  
+app.get('*',(req,res)=>{
+     console.log("Inside * method");
+     res.sendFile(path.join(__dirname1,'client','dist','index.html'))
+ })  
 app.listen(3001, () => {
     console.log("server is running on port 3001!!")
 })
